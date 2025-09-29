@@ -1,0 +1,43 @@
+# --- Python ---
+# Byte-compiled / optimized / C extension files
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Egg info
+*.egg-info/
+*.egg
+
+# --- Virtual Environments ---
+# It's standard practice for each developer to manage their own environment
+/venv/
+/env/
+/.venv/
+/.env/
+/env.bak/
+/venv.bak/
+
+# --- Secrets and Configuration ---
+# Never commit secrets, API keys, or local environment variables
+*.env
+.env
+secrets.toml
+.streamlit/secrets.toml
+
+# --- IDE / Editor Configuration ---
+# VS Code
+.vscode/
+# PyCharm
+.idea/
+
+# --- Operating System Files ---
+# macOS
+.DS_Store
+# Windows
+Thumbs.db
+
+# --- Log Files ---
+*.log
+logs/
+
