@@ -3,11 +3,9 @@ pandas
 numpy
 scikit-learn
 xgboost
-shap
 joblib
+faker
+shap
 matplotlib
-seaborn
-tensorflow
-keras
-plotly
-tqdm
+google-generativeai
+python-dotenv
