@@ -4,7 +4,7 @@ import joblib
 import os
 import plotly.express as px
 
-# It's good practice to import your own modules with an alias
+# This import works because app.py is in the root directory and can see the 'src' folder.
 from src.gemini_integration import get_retention_strategy
 
 # --- Page Configuration ---
@@ -14,7 +14,7 @@ st.set_page_config(
     layout="wide",
 )
 
-# --- Custom CSS for a cleaner look ---
+# --- Custom CSS for a modern look ---
 st.markdown("""
 <style>
 .stMetric {
@@ -33,7 +33,7 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 
-# --- File Paths & Constants ---
+# --- File Paths & Constants (Matching your repository structure) ---
 DATA_PATH = 'data/consulting_churn_data.csv'
 MODEL_PATH = 'models/churn_model_xgb.joblib'
 # These categories must match the ones the model was trained on
@@ -43,21 +43,24 @@ SERVICE_LEVEL_CATEGORIES = ['Basic', 'Premium', 'Enterprise']
 PAYMENT_HISTORY_CATEGORIES = ['On-time', 'Late', 'Consistently Late']
 
 
-# --- Asset Caching with Error Handling ---
+# --- Asset Caching with Improved Error Handling ---
 @st.cache_resource
 def load_model(model_path):
-    """Load the trained model pipeline, with specific error handling."""
+    """Load the trained model pipeline, with specific error handling for version mismatches."""
     if not os.path.exists(model_path):
-        st.error(f"Model file not found at `{model_path}`. Please run `src/model_pipeline.py`.")
+        st.error(f"Model file not found at `{model_path}`. Please run `python src/model_pipeline.py` to create it.")
         return None
     try:
         pipeline = joblib.load(model_path)
         return pipeline
-    except AttributeError as e:
+    except (AttributeError, TypeError) as e:
         st.error(
-            f"An AttributeError occurred: {e}\n"
-            "This error usually means the model was saved with a different library version (e.g., scikit-learn) than what's currently installed. "
-            "To fix this, please delete the existing model file at 'models/churn_model_xgb.joblib' and retrain it by running `python src/model_pipeline.py` in your terminal."
+            f"An error occurred while loading the model: {e}\n"
+            "This usually means the model was saved with a different library version (e.g., scikit-learn) than what's currently installed. "
+            "To fix this, please follow these steps in your terminal:\n"
+            "1. **Delete the old model:** `rm models/churn_model_xgb.joblib`\n"
+            "2. **Reinstall libraries:** `pip install --upgrade -r requirements.txt`\n"
+            "3. **Retrain the model:** `python src/model_pipeline.py`"
         )
         return None
     except Exception as e:
@@ -68,11 +71,11 @@ def load_model(model_path):
 def load_data(data_path):
     """Load the client dataset if it exists."""
     if not os.path.exists(data_path):
-        st.error(f"Data file not found at `{data_path}`. Please run data generation first.")
+        st.error(f"Data file not found at `{data_path}`. Please run the data generation notebook first.")
         return None
     return pd.read_csv(data_path)
 
-# --- Load Data and Model ---
+# --- Load Data and Model at the start ---
 model_pipeline = load_model(MODEL_PATH)
 df_original = load_data(DATA_PATH)
 
@@ -81,17 +84,13 @@ st.title("💼 AI-Powered Client Churn Predictor")
 st.markdown("An interactive tool to predict client churn, analyze risk factors, and generate retention strategies.")
 
 # --- Graceful Exit if Files are Missing ---
+# If loading failed, display instructions and stop the script.
 if model_pipeline is None or df_original is None:
-    st.warning("One or more required files are missing. The application cannot proceed.")
-    st.markdown("""
-        **Please follow these steps in your terminal:**
-        1.  **Generate Data:** Run `notebooks/1-data-generation.ipynb`.
-        2.  **Train Model:** Run `python src/model_pipeline.py`.
-        3.  **Refresh this page.**
-    """)
+    st.warning("One or more required files could not be loaded. The application cannot proceed.")
+    st.markdown("Please check the error messages above and follow the instructions to resolve the issue.")
     st.stop()
 
-# --- Predictions for Batch Data (in session state) ---
+# --- Predictions for Batch Data (using session state for efficiency) ---
 if 'predictions_made' not in st.session_state:
     df_predict = df_original.copy()
     churn_probabilities = model_pipeline.predict_proba(df_predict)[:, 1]
@@ -101,13 +100,14 @@ if 'predictions_made' not in st.session_state:
 
 df_predictions = st.session_state.df_predictions
 
-# --- UI Layout (Two Columns) ---
+# --- UI Layout (Two Columns for main sections) ---
 col1, col2 = st.columns([0.6, 0.4])
 
-# --- Column 1: Batch Prediction and Analysis ---
+# --- Column 1: Batch Client Analysis ---
 with col1:
     st.header("👥 Batch Client Analysis")
 
+    # --- Sidebar Filters for Batch Data ---
     st.sidebar.title("Dashboard Controls")
     confidence_threshold = st.sidebar.slider(
         "High-Risk Threshold", 0.5, 1.0, 0.75, 0.05,
@@ -115,16 +115,19 @@ with col1:
     )
     selected_industry = st.sidebar.selectbox("Filter by Industry", ['All'] + INDUSTRY_CATEGORIES)
 
+    # Apply filters based on sidebar selections
     filtered_df = df_predictions
     if selected_industry != 'All':
         filtered_df = filtered_df[filtered_df['industry'] == selected_industry]
     high_risk_clients = filtered_df[filtered_df['churn_probability'] >= confidence_threshold]
 
+    # --- Key Metrics Display ---
     m1, m2, m3 = st.columns(3)
     m1.metric("Total Clients", f"{len(filtered_df):,}")
     m2.metric("High-Risk Clients", f"{len(high_risk_clients):,}")
     m3.metric("Avg. Churn Risk", f"{filtered_df['churn_probability'].mean():.1%}")
 
+    # --- Tabs for a clean UI ---
     tab1, tab2 = st.tabs(["High-Risk Watchlist", "AI Retention Strategies"])
 
     with tab1:
@@ -153,7 +156,7 @@ with col1:
         else:
              st.info("No high-risk clients to analyze.")
 
-# --- Column 2: Manual Data Entry and Single Prediction ---
+# --- Column 2: Manual Data Entry for Single Prediction ---
 with col2:
     st.header("🔮 Predict for a Single Client")
     with st.form(key='single_client_form'):
@@ -177,6 +180,7 @@ with col2:
         submit_button = st.form_submit_button(label='Predict Churn Risk')
 
     if submit_button:
+        # Create a DataFrame from the user's input. The column order MUST match the training data.
         manual_data = {
             'industry': [industry], 'company_size': [company_size], 'service_level': [service_level],
             'payment_history': [payment_history], 'contract_value': [contract_value],
@@ -186,17 +190,21 @@ with col2:
         }
         manual_df = pd.DataFrame(manual_data)
 
+        # Use the loaded pipeline to predict on the new data
         with st.spinner("Analyzing client profile..."):
             churn_prob = model_pipeline.predict_proba(manual_df)[0][1]
             st.subheader("Prediction Result")
             
+            # Display the result with a dynamic color
             color = "red" if churn_prob > 0.5 else "green"
             st.markdown(f"**Churn Probability:** <span style='color:{color}; font-size: 24px;'>{churn_prob:.1%}</span>", unsafe_allow_html=True)
             st.progress(churn_prob)
-
+            # 
+            # Allow generating a strategy for the manually entered data
             if st.button("Generate AI Retention Plan for this Profile"):
                  with st.spinner("🧠 Gemini is on the case..."):
                     manual_data_dict = {k: v[0] for k, v in manual_data.items()}
                     manual_data_dict['company_name'] = "This Manually Entered Client"
                     strategy = get_retention_strategy(manual_data_dict, churn_prob)
                     st.markdown(strategy)
+
