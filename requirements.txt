@@ -1,12 +1,23 @@
-python>=3.9
-pandas
-numpy
-scikit-learn
-xgboost
-tensorflow>=2.12
-keras-tuner
-streamlit
-joblib
-google-genai       
-optuna             
-matplotlib
+# Core ML & Data
+pandas==2.1.1
+numpy==1.26.0
+scikit-learn==1.3.0
+xgboost==1.7.6
+tensorflow==2.15.0
+joblib==1.3.2
+
+# Streamlit
+streamlit==1.27.0
+
+# Explainable AI
+shap==0.42.0
+lime==0.2.3.2
+
+# API & Env
+python-dotenv==1.1.1
+requests==2.31.0
+
+# Optional: Data visualization
+matplotlib==3.8.0
+seaborn==0.12.2
+plotly==5.16.1
