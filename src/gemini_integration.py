@@ -43,7 +43,7 @@ def get_retention_strategy(client_data: dict, churn_prob: float) -> str:
     # --- 2. Configure Gemini Model ---
     try:
         genai.configure(api_key=api_key)
-        model = genai.GenerativeModel('gemini-pro')
+        model = genai.GenerativeModel('gemini-2.0-flash')
     except Exception as e:
         return f"**Error:** Failed to configure the Gemini model. Please check your API key. Details: {e}"
 
