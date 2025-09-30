@@ -1,1 +1,17 @@
+# Core Data Science & Machine Learning Libraries
+pandas
+numpy
+scikit-learn
+xgboost
 
+# Web Application & Visualization
+streamlit
+plotly
+
+# Generative AI Integration
+google-generativeai
+python-dotenv
+
+# Notebook Environment (for data generation and model exploration)
+jupyter
+Faker
