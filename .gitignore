@@ -1,0 +1,33 @@
+# Byte-compiled / Python cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Virtual environment
+venv/
+.env/
+.env.*
+
+# Jupyter / Colab
+.ipynb_checkpoints/
+*.ipynb
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Dataset / processed data
+data/processed/
+data/synthetic_churn.csv
+
+# Models
+models/
+*.h5
+*.pkl
+
+# Logs
+*.log
+
+# Temporary files
+*.tmp
