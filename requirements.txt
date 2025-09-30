@@ -1,10 +1,12 @@
-streamlit
+python>=3.9
 pandas
 numpy
 scikit-learn
 xgboost
+tensorflow>=2.12
+keras-tuner
+streamlit
 joblib
-faker
+google-genai       
+optuna             
 matplotlib
-google-generativeai
-python-dotenv
